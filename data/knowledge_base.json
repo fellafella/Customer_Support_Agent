@@ -1,0 +1,97 @@
+{
+  "company": "NovaShop (fictional demo company)",
+  "note": "Synthetic data for development only. Not a real company.",
+  "entries": [
+    {
+      "id": "kb-001",
+      "category": "orders_and_delivery",
+      "title": "Standard delivery times",
+      "content": "Standard delivery takes 3 to 5 business days after the order is shipped. Express delivery takes 1 to 2 business days. Delivery times may be longer during holidays.",
+      "keywords": ["delivery", "shipping", "how long", "livraison", "delai", "expedition", "express"]
+    },
+    {
+      "id": "kb-002",
+      "category": "orders_and_delivery",
+      "title": "Tracking an order",
+      "content": "Once an order ships, a tracking number is sent by email. The tracking number can be entered on the carrier's website to follow the parcel. Tracking updates can take up to 24 hours to appear.",
+      "keywords": ["track", "tracking", "where is my order", "suivi", "colis", "suivre", "order status"]
+    },
+    {
+      "id": "kb-003",
+      "category": "orders_and_delivery",
+      "title": "Late or lost parcels",
+      "content": "If a parcel has not arrived 10 business days after shipping, the case must be reviewed by the support team. The customer should provide the order number.",
+      "keywords": ["late", "lost", "missing", "not arrived", "retard", "perdu", "pas recu", "never arrived"]
+    },
+    {
+      "id": "kb-004",
+      "category": "refunds_and_returns",
+      "title": "Return policy",
+      "content": "Products can be returned within 30 days of delivery if they are unused and in their original packaging. Return shipping costs are paid by the customer unless the item is defective.",
+      "keywords": ["return", "send back", "retour", "retourner", "renvoyer", "30 days"]
+    },
+    {
+      "id": "kb-005",
+      "category": "refunds_and_returns",
+      "title": "Refund process",
+      "content": "After a returned item is received and inspected, refunds are issued to the original payment method. Processing usually takes 5 to 10 business days. Refund approval is handled by the support team.",
+      "keywords": ["refund", "money back", "remboursement", "rembourser", "reimbursement"]
+    },
+    {
+      "id": "kb-006",
+      "category": "refunds_and_returns",
+      "title": "Damaged or defective items",
+      "content": "If an item arrives damaged or defective, the customer should send photos and the order number. The support team will review the case and propose a replacement or a refund.",
+      "keywords": ["damaged", "broken", "defective", "endommage", "casse", "defectueux", "faulty"]
+    },
+    {
+      "id": "kb-007",
+      "category": "technical_support",
+      "title": "Cannot log in",
+      "content": "If login fails, use the 'Forgot password' link on the sign-in page to reset the password by email. Check the spam folder if the email does not arrive within 10 minutes.",
+      "keywords": ["login", "log in", "password", "sign in", "connexion", "mot de passe", "connecter"]
+    },
+    {
+      "id": "kb-008",
+      "category": "technical_support",
+      "title": "Device does not turn on",
+      "content": "If the NovaBuds earbuds do not turn on, place them in the charging case for 30 minutes, then hold the button for 5 seconds. If the problem persists, contact support with the order number.",
+      "keywords": ["not turning on", "does not turn on", "won't charge", "charging", "ne s'allume pas", "batterie", "battery", "earbuds"]
+    },
+    {
+      "id": "kb-009",
+      "category": "technical_support",
+      "title": "Website or app errors",
+      "content": "If the website or app shows an error, try refreshing the page, clearing the browser cache, or updating the app to the latest version. If the error continues, describe the steps that cause it.",
+      "keywords": ["error", "bug", "crash", "app", "website", "erreur", "site", "plante"]
+    },
+    {
+      "id": "kb-010",
+      "category": "product_information",
+      "title": "NovaBuds product information",
+      "content": "NovaBuds are wireless earbuds with up to 8 hours of battery life per charge and 24 hours with the charging case. They are available in black and white and include a 1-year warranty.",
+      "keywords": ["novabuds", "earbuds", "ecouteurs", "battery life", "warranty", "garantie", "colors", "couleurs"]
+    },
+    {
+      "id": "kb-011",
+      "category": "product_information",
+      "title": "Payment methods",
+      "content": "NovaShop accepts major credit cards and PayPal. Payment is charged when the order is confirmed.",
+      "keywords": ["payment", "pay", "credit card", "paypal", "paiement", "payer", "carte"]
+    },
+    {
+      "id": "kb-012",
+      "category": "complaint",
+      "title": "How complaints are handled",
+      "content": "Complaints are reviewed by the support team, who aim to reply within 2 business days. Customers can ask to speak with a human agent at any time.",
+      "keywords": ["complaint", "unhappy", "dissatisfied", "reclamation", "plainte", "mecontent"]
+    },
+    {
+      "id": "kb-013",
+      "category": "other",
+      "title": "Support opening hours",
+      "content": "The support team is available Monday to Friday, 9:00 to 18:00. Messages sent outside these hours are answered the next business day.",
+      "keywords": ["hours", "opening", "contact", "horaires", "ouvert", "joindre"]
+    }
+  ]
+}
