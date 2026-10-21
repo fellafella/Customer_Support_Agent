@@ -1,8 +1,13 @@
-"""Chargement et validation de la base de connaissances locale (JSON).
+"""Chargement, validation et recherche dans la base de connaissances locale (JSON).
 
-La recherche (retrieval) sera ajoutée en Phase 2. Ici, on s'assure seulement
-que les données sont chargées et valides. Les entrées sont des objets simples,
-ce qui permettra plus tard de les indexer dans une base vectorielle.
+Phase 2 : la recherche se fait par mots-clés avec un score de pertinence entre
+0 et 1. Elle est volontairement simple et isolée dans ``KnowledgeBase.search``
+pour pouvoir être remplacée plus tard par une recherche sémantique (embeddings
++ base vectorielle) sans toucher au reste de l'application.
+
+Principe anti-invention : l'agent ne s'appuie QUE sur les fiches retrouvées.
+Si aucune fiche n'atteint ``MIN_RELIABLE_SCORE``, l'information est considérée
+comme non fiable et la demande est escaladée.
 """
 
 from __future__ import annotations
@@ -12,9 +17,22 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, model_validator
 
-from src.models import Category
+from src.keywords import find_matches, normalize_text
+from src.models import Category, RetrievedInformation
 
 DEFAULT_KB_PATH = Path(__file__).resolve().parent.parent / "data" / "knowledge_base.json"
+
+# Score minimal pour considérer une fiche comme une source fiable.
+MIN_RELIABLE_SCORE = 0.3
+
+# Poids d'un mot-clé : une expression de plusieurs mots est plus précise
+# qu'un mot isolé.
+_SINGLE_WORD_WEIGHT = 0.5
+_PHRASE_WEIGHT = 1.0
+# Bonus si la catégorie de la fiche correspond à celle de la demande.
+_CATEGORY_BONUS = 0.25
+# Total qui donne un score de 1.0.
+_SCORE_DIVISOR = 1.5
 
 
 class KBEntry(BaseModel):
@@ -48,6 +66,56 @@ class KnowledgeBase(BaseModel):
     def entries_by_category(self, category: Category) -> list[KBEntry]:
         """Retourne toutes les fiches d'une catégorie."""
         return [e for e in self.entries if e.category == category]
+
+    def search(
+        self,
+        query: str,
+        *,
+        category: Category | None = None,
+        top_k: int = 3,
+        min_score: float = 0.0,
+    ) -> list[RetrievedInformation]:
+        """Cherche les fiches les plus pertinentes pour une question.
+
+        Args:
+            query: texte du client.
+            category: catégorie détectée ; elle donne un petit bonus aux fiches
+                de la même catégorie, sans jamais suffire à elle seule.
+            top_k: nombre maximal de fiches retournées.
+            min_score: score minimal pour être retourné.
+
+        Returns:
+            Les fiches triées par score décroissant. Liste vide si aucun mot-clé
+            ne correspond : l'agent ne doit alors rien inventer.
+        """
+        if top_k < 1:
+            return []
+        normalized = normalize_text(query)
+        scored: list[tuple[float, int, KBEntry]] = []
+        for position, entry in enumerate(self.entries):
+            matches = find_matches(normalized, tuple(entry.keywords))
+            if not matches:
+                continue  # sans mot-clé commun, pas de pertinence
+            raw = sum(
+                _PHRASE_WEIGHT if " " in normalize_text(kw.rstrip("!")) else _SINGLE_WORD_WEIGHT
+                for kw in matches
+            )
+            if category is not None and entry.category == category:
+                raw += _CATEGORY_BONUS
+            score = min(1.0, raw / _SCORE_DIVISOR)
+            if score >= min_score:
+                scored.append((score, position, entry))
+        # Tri : meilleur score d'abord ; à égalité, l'ordre du fichier JSON.
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        return [
+            RetrievedInformation(
+                doc_id=entry.id,
+                title=entry.title,
+                content=entry.content,
+                score=round(score, 3),
+            )
+            for score, _, entry in scored[:top_k]
+        ]
 
 
 def load_knowledge_base(path: Path | str = DEFAULT_KB_PATH) -> KnowledgeBase:
