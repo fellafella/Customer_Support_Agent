@@ -8,6 +8,7 @@ au lieu de laisser passer des données incohérentes.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -95,6 +96,7 @@ class AnalysisResult(BaseModel):
     suggested_response: str = ""
     order_number: str | None = None
     language: str = Field(default="en", pattern=r"^(en|fr)$")
+    response_source: Literal["llm", "template"] = "template"
 
     @model_validator(mode="after")
     def _escalation_is_consistent(self) -> "AnalysisResult":
@@ -104,3 +106,15 @@ class AnalysisResult(BaseModel):
         if not self.needs_human and self.escalation_reason:
             raise ValueError("escalation_reason doit être vide si needs_human est faux.")
         return self
+
+
+class LLMReply(BaseModel):
+    """Réponse structurée demandée au LLM (validée avant utilisation)."""
+
+    answerable: bool = Field(
+        ..., description="True only if the documents contain enough information to answer."
+    )
+    reply: str = Field(..., description="The reply to the customer, in the customer's language.")
+    used_doc_ids: list[str] = Field(
+        ..., description="Ids of the documents the reply is based on."
+    )

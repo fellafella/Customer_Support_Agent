@@ -141,3 +141,17 @@ ENGLISH_MARKERS: frozenset[str] = frozenset({
     "what", "how", "can", "please", "hello", "hi", "this", "was", "with",
     "for", "and", "it", "im", "ive", "when", "still", "me", "to", "do",
 })
+
+# --------------------------------------------------------------------------- #
+# Promesses interdites dans une réponse générée par le LLM (garde-fou)
+# --------------------------------------------------------------------------- #
+FORBIDDEN_CLAIM_KEYWORDS: tuple[str, ...] = (
+    "been refunded", "been cancelled", "been canceled", "been approved",
+    "ive refunded", "i have refunded", "weve refunded", "we have refunded",
+    "ive cancelled", "i have cancelled", "we have cancelled", "we have approved",
+    "i will refund", "we will refund", "you will be refunded", "guarantee",
+    "ete rembourse", "ete annule", "ete approuve", "nous avons rembourse",
+    "nous avons annule", "nous avons approuve", "vous serez rembourse",
+    "nous vous rembourserons", "je vous rembourse", "nous garantissons",
+    "je garantis",
+)
