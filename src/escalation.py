@@ -25,6 +25,9 @@ ACTION_REQUIRED = "action_requires_authorization"
 NO_RELIABLE_INFO = "no_reliable_information"
 PERSISTENT_DISSATISFACTION = "persistent_dissatisfaction"
 
+# Intentions qui demandent toujours une action ou une autorisation humaine.
+ACTION_INTENTS: frozenset[str] = frozenset({"cancel_or_modify_order"})
+
 REASONS: dict[str, str] = {
     HUMAN_REQUESTED: "The customer asked to speak with a human agent.",
     FRAUD_OR_SECURITY: "The message mentions fraud, a security issue or a privacy concern.",
@@ -67,7 +70,10 @@ def evaluate_escalation(
         triggers.append(FRAUD_OR_SECURITY)
     if find_matches(normalized, SENSITIVE_BILLING_KEYWORDS):
         triggers.append(SENSITIVE_BILLING)
-    if find_matches(normalized, ACTION_REQUIRED_KEYWORDS):
+    if (
+        find_matches(normalized, ACTION_REQUIRED_KEYWORDS)
+        or classification.intent in ACTION_INTENTS
+    ):
         triggers.append(ACTION_REQUIRED)
     if has_reliable_info is False:
         triggers.append(NO_RELIABLE_INFO)

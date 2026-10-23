@@ -81,6 +81,30 @@ class EscalationDecision(BaseModel):
         return self
 
 
+class HandoffSummary(BaseModel):
+    """Résumé de cas destiné à l'agent humain qui reprend la conversation.
+
+    Les textes du client y sont déjà expurgés des données sensibles
+    (e-mails, numéros de carte, téléphones).
+    """
+
+    headline: str
+    priority: Priority
+    category: Category
+    intent: str
+    sentiment: Sentiment
+    customer_language: str
+    order_number: str | None = None
+    escalation_reason: str
+    triggers: list[str] = Field(default_factory=list)
+    conversation_summary: str
+    customer_messages: list[str] = Field(default_factory=list)
+    relevant_kb: list[str] = Field(default_factory=list)
+    recommended_actions: list[str] = Field(default_factory=list)
+    ai_actions_taken: list[str] = Field(default_factory=list)
+    ai_note: str = ""
+
+
 class AnalysisResult(BaseModel):
     """Analyse complète et validée d'un message client."""
 
@@ -97,6 +121,7 @@ class AnalysisResult(BaseModel):
     order_number: str | None = None
     language: str = Field(default="en", pattern=r"^(en|fr)$")
     response_source: Literal["llm", "template"] = "template"
+    handoff: HandoffSummary | None = None
 
     @model_validator(mode="after")
     def _escalation_is_consistent(self) -> "AnalysisResult":
@@ -105,6 +130,8 @@ class AnalysisResult(BaseModel):
             raise ValueError("escalation_reason est obligatoire si needs_human est vrai.")
         if not self.needs_human and self.escalation_reason:
             raise ValueError("escalation_reason doit être vide si needs_human est faux.")
+        if not self.needs_human and self.handoff is not None:
+            raise ValueError("handoff doit être vide si needs_human est faux.")
         return self
 
 

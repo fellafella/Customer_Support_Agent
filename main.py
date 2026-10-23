@@ -16,6 +16,7 @@ import sys
 
 from src.analyzer import analyze_message
 from src.config import load_settings
+from src.handoff import format_handoff
 from src.llm_client import create_llm_client
 
 SAMPLE_MESSAGES = [
@@ -26,6 +27,10 @@ SAMPLE_MESSAGES = [
     "Someone made an unauthorized payment with my card, this is urgent!",
     "I want to talk to a human please.",
 ]
+
+# Petite conversation : le mécontentement qui dure déclenche l'escalade.
+SAMPLE_HISTORY = ["My order ORD-77001 is late, this is unacceptable"]
+SAMPLE_FOLLOW_UP = "Still nothing and this is terrible, I am very frustrated"
 
 
 def main() -> None:
@@ -46,11 +51,18 @@ def main() -> None:
     else:
         print("Mode sans LLM (--no-llm).")
 
-    messages = [" ".join(args)] if args else SAMPLE_MESSAGES
-    for text in messages:
-        result = analyze_message(text, llm=llm)
+    cases = (
+        [(" ".join(args), [])]
+        if args
+        else [(text, []) for text in SAMPLE_MESSAGES] + [(SAMPLE_FOLLOW_UP, SAMPLE_HISTORY)]
+    )
+    for text, history in cases:
+        result = analyze_message(text, llm=llm, history=history)
         print(f"\n> {text}")
-        print(result.model_dump_json(indent=2))
+        print(result.model_dump_json(indent=2, exclude={"handoff"}))
+        if result.handoff:
+            print("\n--- Case summary for the human agent ---")
+            print(format_handoff(result.handoff))
 
 
 if __name__ == "__main__":

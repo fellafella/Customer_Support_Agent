@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
+from collections.abc import Sequence
 
-from src.classifier import classify_message
+from src.classifier import classify_message, extract_order_number
 from src.escalation import evaluate_escalation
 from src.knowledge_base import MIN_RELIABLE_SCORE, KnowledgeBase, load_knowledge_base
+from src.handoff import build_handoff_summary
 from src.llm_client import LLMClient, LLMError
-from src.models import AnalysisResult, CustomerMessage
+from src.models import AnalysisResult, CustomerMessage, Sentiment
 from src.response_generator import (
     build_fallback_response,
     build_grounded_response,
@@ -33,9 +36,14 @@ def analyze_message(
     *,
     kb: KnowledgeBase | None = None,
     llm: LLMClient | None = None,
+    history: Sequence[str] = (),
     previous_negative_messages: int = 0,
 ) -> AnalysisResult:
     """Analyse un message client et propose une réponse (jamais envoyée).
+
+    ``history`` contient les messages précédents du même client (du plus
+    ancien au plus récent) : ils servent à détecter un mécontentement qui
+    dure et à rédiger le résumé de cas pour l'agent humain.
 
     Étapes : classification, recherche dans la base, décision d'escalade,
     puis réponse. Le LLM n'est appelé que si la demande n'est PAS escaladée
@@ -49,6 +57,16 @@ def analyze_message(
     message = CustomerMessage(text=text)
     knowledge_base = kb if kb is not None else _get_default_kb()
     classification = classify_message(message.text)
+    if classification.order_number is None:
+        # Le numéro de commande a pu être donné dans un message précédent.
+        earlier = next(
+            (n for n in map(extract_order_number, reversed(list(history))) if n), None
+        )
+        classification = replace(classification, order_number=earlier)
+    previous_negative_messages = max(
+        previous_negative_messages,
+        sum(1 for old in history if classify_message(old).sentiment == Sentiment.NEGATIVE),
+    )
 
     retrieved = knowledge_base.search(
         message.text,
@@ -99,6 +117,16 @@ def analyze_message(
                         classification.language, needs_human=True
                     )
 
+    handoff = None
+    if decision.needs_human:
+        handoff = build_handoff_summary(
+            customer_messages=[*history, message.text],
+            classification=classification,
+            decision=decision,
+            retrieved=retrieved,
+            previous_negative_messages=previous_negative_messages,
+        )
+
     return AnalysisResult(
         intent=classification.intent,
         category=classification.category,
@@ -111,4 +139,5 @@ def analyze_message(
         order_number=classification.order_number,
         language=classification.language,
         response_source=response_source,
+        handoff=handoff,
     )
