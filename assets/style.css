@@ -1,0 +1,269 @@
+/* Support desk - interface styles.
+   Direction: a triage desk. Each analysed message becomes a ticket slip;
+   the one big moment is the slip being processed and stamped. */
+
+:root {
+  --bg: #EDF1F5;
+  --paper: #FFFFFF;
+  --ink: #101B2D;
+  --slate: #5B6B82;
+  --line: #D3DCE7;
+  --accent: #2F5BFF;
+  --ok: #1F9D6B;
+  --warn: #D98B0B;
+  --alarm: #D93B3B;
+  --low: #1F9D6B;
+  --medium: #2F5BFF;
+  --high: #D98B0B;
+  --urgent: #D93B3B;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* ---------- Page ---------- */
+.stApp { background: var(--bg); font-family: var(--sans); }
+.block-container { max-width: 860px; padding-top: 4.2rem; padding-bottom: 5rem; }
+[data-testid="stSidebar"] { background: var(--paper); border-right: 1px solid var(--line); }
+[data-testid="stSidebar"] h2 { font-family: var(--serif); font-weight: 600; }
+
+.masthead h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 2.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 .55rem;
+}
+.masthead p { color: var(--slate); font-size: 1.02rem; line-height: 1.55; max-width: 60ch; margin: 0 0 1.4rem; }
+
+/* ---------- Inputs ---------- */
+.stTextArea textarea, [data-baseweb="select"] > div {
+  background: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.stTextArea textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(47, 91, 255, .18) !important;
+}
+
+/* ---------- Buttons: respond to the hand ---------- */
+.stButton > button, [data-testid^="stBaseButton"] {
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform .14s ease, box-shadow .14s ease, background-color .14s ease;
+}
+.stButton > button:hover:not(:disabled), [data-testid^="stBaseButton"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 27, 45, .16);
+}
+.stButton > button:active:not(:disabled), [data-testid^="stBaseButton"]:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+.stButton > button:focus-visible, [data-testid^="stBaseButton"]:focus-visible {
+  outline: 3px solid rgba(47, 91, 255, .35);
+  outline-offset: 2px;
+}
+
+/* ---------- Tabs and expanders ---------- */
+button[data-baseweb="tab"] { font-weight: 600; transition: color .15s ease; }
+[data-testid="stExpander"] {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+/* ---------- Empty state ---------- */
+.empty {
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+  padding: 1.6rem 1.4rem;
+  color: var(--slate);
+  line-height: 1.55;
+  margin-top: .6rem;
+}
+.empty strong { color: var(--ink); }
+
+/* ---------- Ticket ---------- */
+.ticket {
+  --stripe: var(--medium);
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 8px solid var(--stripe);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(16, 27, 45, .08);
+  margin: 1.2rem 0 1.4rem;
+  overflow: hidden;
+  animation: thud .28s ease 1.4s;
+}
+.ticket.prio-low { --stripe: var(--low); }
+.ticket.prio-medium { --stripe: var(--medium); }
+.ticket.prio-high { --stripe: var(--high); }
+.ticket.prio-urgent { --stripe: var(--urgent); }
+
+.ticket-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.3rem 1.5rem 1.2rem;
+}
+.ticket-no { color: var(--slate); font-size: .9rem; margin: 0 0 .25rem; }
+.ticket-title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* The one memorable moment: the stamp */
+.stamp {
+  flex: none;
+  font-weight: 800;
+  font-size: .95rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: .35rem .8rem;
+  border: 3px double currentColor;
+  border-radius: 6px;
+  transform: rotate(-5deg);
+  white-space: nowrap;
+  animation: slam .5s cubic-bezier(.2, 1.5, .4, 1) 1.15s backwards;
+}
+.stamp.is-alert { color: var(--alarm); }
+.stamp.is-ready { color: var(--ok); }
+
+/* Perforated divider */
+.perf { position: relative; border-top: 2px dashed var(--line); margin: 0 1.5rem; }
+.perf::before, .perf::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.perf::before { left: -2.1rem; }
+.perf::after { right: -2.1rem; }
+
+/* Facts */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 1.1rem 1.5rem;
+}
+.fact { padding-right: 1rem; }
+.fact + .fact { border-left: 1px solid var(--line); padding-left: 1rem; }
+.fact dt { color: var(--slate); font-size: .85rem; margin: 0 0 .2rem; }
+.fact dd { margin: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.dot {
+  display: inline-block;
+  width: .65rem;
+  height: .65rem;
+  border-radius: 50%;
+  margin-right: .4rem;
+  background: var(--stripe);
+  vertical-align: baseline;
+}
+.prio-urgent .dot { animation: ring 1.6s ease-out infinite; }
+
+/* Reason */
+.reason {
+  margin: 0 1.5rem 1.2rem;
+  padding: .75rem 1rem;
+  border-radius: 10px;
+  background: #FDECEC;
+  color: #7A1F1F;
+  line-height: 1.5;
+}
+.reason.is-fine { background: #E7F6EF; color: #14573D; }
+
+/* Trail: how the agent decided (a real sequence) */
+.trail {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  padding: 1.3rem 1.5rem 1.5rem;
+  margin: 0;
+  list-style: none;
+}
+.trail::before, .trail::after {
+  content: "";
+  position: absolute;
+  top: 1.95rem;
+  left: calc(1.5rem + 10px);
+  height: 3px;
+  border-radius: 2px;
+}
+.trail::before { width: calc((100% - 3rem) * .75 - 10px); background: var(--line); }
+.trail::after {
+  width: calc((100% - 3rem) * .75 - 10px);
+  background: var(--accent);
+  animation: draw .95s ease-out .15s backwards;
+}
+.step { position: relative; }
+.step .tick {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  z-index: 1;
+  animation: tick .4s ease backwards;
+  animation-delay: calc(var(--i) * .27s);
+}
+.step .tick::before { content: "\2713"; }
+.step b { display: block; margin-top: .6rem; font-size: .93rem; color: var(--ink); }
+.step .detail { display: block; color: var(--slate); font-size: .86rem; line-height: 1.4; margin-top: .1rem; }
+
+/* Relevance bar (knowledge base) */
+.bar { height: 6px; background: #E3E9F1; border-radius: 3px; margin: .2rem 0 .7rem; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: var(--w); background: var(--accent); border-radius: 3px; animation: fill .7s ease-out backwards; }
+
+/* ---------- Motion ---------- */
+@keyframes draw { from { width: 0; } }
+@keyframes fill { from { width: 0; } }
+@keyframes tick { from { transform: scale(0); background: var(--line); } }
+@keyframes slam {
+  from { opacity: 0; transform: rotate(-14deg) scale(2.6); }
+}
+@keyframes thud {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(3px); }
+}
+@keyframes ring {
+  0% { box-shadow: 0 0 0 0 rgba(217, 59, 59, .55); }
+  100% { box-shadow: 0 0 0 .6rem rgba(217, 59, 59, 0); }
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 680px) {
+  .masthead h1 { font-size: 2rem; }
+  .ticket-head { flex-direction: column; }
+  .facts { grid-template-columns: 1fr 1fr; row-gap: 1rem; }
+  .fact:nth-child(3) { border-left: 0; padding-left: 0; }
+  .trail { grid-template-columns: 1fr; gap: 1rem; }
+  .trail::before, .trail::after { display: none; }
+  .perf::before { left: -1.6rem; }
+  .perf::after { right: -1.6rem; }
+}
+
+/* ---------- Respect reduced motion: elements keep their final look ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ticket, .stamp, .trail::after, .step .tick, .bar > i, .dot { animation: none !important; }
+  .stButton > button, [data-testid^="stBaseButton"] { transition: none; }
+}
