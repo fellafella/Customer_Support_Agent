@@ -54,7 +54,7 @@ Customer message
 | LLM | Google Gemini through Google AI Studio (`google-genai` SDK) |
 | Interface | Streamlit |
 | Local API | FastAPI and Uvicorn |
-| Automation | n8n (runs in Docker or with `npx`) |
+| Automation | n8n (runs in Docker ) |
 | Tests | Pytest, 288 tests, no network access needed |
 
 ## Quick start
