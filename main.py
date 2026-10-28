@@ -11,13 +11,14 @@ Les réponses ne sont JAMAIS envoyées : ce sont des brouillons pour un humain.
 
 from __future__ import annotations
 
-import logging
+import os
 import sys
 
 from src.analyzer import analyze_message
 from src.config import load_settings
 from src.handoff import format_handoff
 from src.llm_client import create_llm_client
+from src.logging_config import configure_logging
 
 SAMPLE_MESSAGES = [
     "Hi, how long does standard delivery take?",
@@ -35,7 +36,7 @@ SAMPLE_FOLLOW_UP = "Still nothing and this is terrible, I am very frustrated"
 
 def main() -> None:
     """Affiche l'analyse JSON du message passé en argument (ou d'exemples)."""
-    logging.basicConfig(level=logging.WARNING, format="[%(levelname)s] %(message)s")
+    configure_logging(os.environ.get("LOG_LEVEL", "WARNING"))
     args = [a for a in sys.argv[1:] if a != "--no-llm"]
     use_llm = "--no-llm" not in sys.argv[1:]
 

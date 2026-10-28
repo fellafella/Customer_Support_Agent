@@ -1,0 +1,443 @@
+{
+  "id": "supportAgentApproval01",
+  "name": "AI Customer Support Agent - human approval required",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-request",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "186f6703-914a-5a3d-81c1-23c79870dabc",
+      "name": "Receive request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "f88a7418-dc20-5014-b4e6-2ae756b4458e",
+      "notes": "Body: {\"message\": \"...\", \"history\": [\"earlier customer messages\"]}. Replace with an Email/Slack/Telegram trigger to use a real channel.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/analyze",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "change-me-if-SUPPORT_API_KEY-is-set"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.body.message, history: $json.body.history || [] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "66f48000-9e73-52c3-9b9e-b8f7194218ed",
+      "name": "Analyze message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "898ef7bd-179a-59e7-bccf-98a339f14c3f",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "escalate_to_human",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f29c42e0-3b7e-56a3-9442-38a017910bb1",
+      "name": "Needs a human?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/escalations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "change-me-if-SUPPORT_API_KEY-is-set"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ customer_message: $('Receive request').first().json.body.message, handoff: $json.handoff }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "ed96237b-aa5f-5277-a121-4c441b5797e0",
+      "name": "Record escalation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "051086de-03db-5a14-96c4-343e3e14b040",
+              "name": "notification",
+              "value": "={{ $('Analyze message').first().json.handoff.headline + '\\n' + $('Analyze message').first().json.handoff.escalation_reason }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "51483395-7455-5365-b323-729caf106ab3",
+      "name": "Notify the human agent",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        100
+      ],
+      "notes": "Replace with an Email, Slack or Telegram node that sends this summary to your human agents. The AI sends nothing to the customer.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1768d373-c5f9-5cdd-b4de-714adb603f27",
+              "name": "notification",
+              "value": "=The analysis service failed. A human must handle this message: {{ $('Receive request').first().json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ac3f473-c213-545a-90bc-336e3f246d79",
+      "name": "Hand over to a human (analysis unavailable)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        460
+      ],
+      "notes": "Safe fallback: when the API is down the case goes to a person.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fd2624c2-8019-5cd2-b928-b0a7c49a8cae",
+              "name": "suggested_reply",
+              "value": "={{ $json.suggested_response }}",
+              "type": "string"
+            },
+            {
+              "id": "501a42c3-286e-5d60-8fc8-eefd78321090",
+              "name": "customer_message",
+              "value": "={{ $('Receive request').first().json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "7b0f3c52-4a1e-5d7a-9c11-2f6a8e0b4d31",
+              "name": "review_form_url",
+              "value": "={{ $execution.resumeFormUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "07c94fcd-f1f0-5621-aaad-0c86a354cacb",
+      "name": "Prepare review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        300
+      ],
+      "notes": "Open this node's output in the execution and copy review_form_url: it is the signed link to the approval form. In real use, send it to your reviewers with an Email or Slack node.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Review the suggested reply",
+        "formDescription": "=Customer message:\n{{ $json.customer_message }}\n\nSuggested reply:\n{{ $json.suggested_reply }}\n\nNothing is sent to the customer until you approve.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Decision",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve as written"
+                  },
+                  {
+                    "option": "Approve with my edited reply"
+                  },
+                  {
+                    "option": "Reject"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Edited reply",
+              "fieldType": "textarea",
+              "requiredField": false,
+              "placeholder": "Only needed if you chose: Approve with my edited reply"
+            },
+            {
+              "fieldLabel": "Your name",
+              "fieldType": "text",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a6286da-e55e-59b0-8f6d-381c99160047",
+      "name": "Wait for human approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        300
+      ],
+      "webhookId": "0aa05bca-51c6-5230-9497-41cca10d1aa5",
+      "notes": "The workflow pauses here until a person submits the form. Use the signed link from the 'Prepare review' node (review_form_url); a link typed by hand is rejected by n8n.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1fae6893-8b78-5422-ab7f-decc7d688dba",
+              "leftValue": "={{ $json.Decision }}",
+              "rightValue": "Approve",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c6c3b63e-afd1-558a-be37-89c862e7f639",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/approved-replies",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "change-me-if-SUPPORT_API_KEY-is-set"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ approved: true, approved_by: $json['Your name'], customer_message: $('Prepare review').first().json.customer_message, reply: ($json.Decision === 'Approve with my edited reply') ? $json['Edited reply'] : $('Prepare review').first().json.suggested_reply }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "14445a6f-15db-5dd2-b43b-ade1e20f506a",
+      "name": "Save to simulated outbox",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        200
+      ],
+      "notes": "Simulation only: the reply is written to data/runtime/outbox_simulation.jsonl with sent=false. Replace with a real sending node only after you add your own safeguards, and keep the approval step.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {},
+      "id": "59dd72b1-ee51-5de2-bb39-e5529c457ae2",
+      "name": "Rejected - nothing sent",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        420
+      ],
+      "notes": "Nothing is sent. Add your own follow-up here if you want one (for example a message to the team).",
+      "notesInFlow": true
+    }
+  ],
+  "connections": {
+    "Receive request": {
+      "main": [
+        [
+          {
+            "node": "Analyze message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze message": {
+      "main": [
+        [
+          {
+            "node": "Needs a human?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hand over to a human (analysis unavailable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs a human?": {
+      "main": [
+        [
+          {
+            "node": "Record escalation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record escalation": {
+      "main": [
+        [
+          {
+            "node": "Notify the human agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare review": {
+      "main": [
+        [
+          {
+            "node": "Wait for human approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for human approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Save to simulated outbox",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected - nothing sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

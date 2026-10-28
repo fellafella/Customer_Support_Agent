@@ -155,3 +155,4 @@ def relevance_bar_html(score: float) -> str:
         f'<div class="bar" role="img" aria-label="Relevance {percent} percent">'
         f'<i style="--w:{percent}%"></i></div>'
     )
+

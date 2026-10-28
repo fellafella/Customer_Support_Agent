@@ -58,3 +58,4 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         model=(env.get("LLM_MODEL") or DEFAULT_MODEL).strip(),
         timeout_seconds=timeout,
     )
+

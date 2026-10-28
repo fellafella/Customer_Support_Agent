@@ -10,7 +10,7 @@ from src.classifier import classify_message, extract_order_number
 from src.escalation import evaluate_escalation
 from src.knowledge_base import MIN_RELIABLE_SCORE, KnowledgeBase, load_knowledge_base
 from src.handoff import build_handoff_summary
-from src.llm_client import LLMClient, LLMError
+from src.llm_client import LLMClient
 from src.models import AnalysisResult, CustomerMessage, Sentiment
 from src.response_generator import (
     build_fallback_response,
@@ -99,9 +99,9 @@ def analyze_message(
                 reply = generate_llm_reply(
                     llm, message.text, classification.language, retrieved
                 )
-            except LLMError as exc:
-                # Pas de contenu client dans le log, seulement la cause.
-                logger.warning("LLM non utilisé, réponse de secours : %s", exc)
+            except Exception as exc:  # noqa: BLE001 - toute panne du LLM => réponse de secours
+                # Pas de contenu client dans le log : seulement le type d'erreur.
+                logger.warning("LLM non utilisé, réponse de secours (%s)", type(exc).__name__)
             else:
                 if reply.answerable:
                     suggested, response_source = reply.reply, "llm"
@@ -126,6 +126,19 @@ def analyze_message(
             retrieved=retrieved,
             previous_negative_messages=previous_negative_messages,
         )
+
+    logger.info(
+        "Cas analysé : intent=%s category=%s priority=%s sentiment=%s needs_human=%s "
+        "source=%s triggers=%s kb_hits=%d",
+        classification.intent,
+        classification.category.value,
+        classification.priority.value,
+        classification.sentiment.value,
+        decision.needs_human,
+        response_source,
+        ",".join(decision.triggers) or "-",
+        len(retrieved),
+    )
 
     return AnalysisResult(
         intent=classification.intent,

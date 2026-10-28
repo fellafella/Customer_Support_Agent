@@ -42,6 +42,7 @@ def inject_style() -> None:
         pass
 
 
+
 # --- Ressources partagées (chargées une seule fois) ---------------------------
 @st.cache_resource
 def get_settings():

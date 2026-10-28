@@ -16,3 +16,9 @@ venv/
 
 # Logs
 *.log
+
+# Local automation logs (may contain customer text)
+data/runtime/
+
+# Generated copy of the n8n workflow for Docker (see n8n/SETUP.md)
+n8n/*.docker.json
