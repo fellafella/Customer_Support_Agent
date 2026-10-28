@@ -174,6 +174,3 @@ python -m pytest
 - Approved drafts are kept for the session (Streamlit) or in a local file (API). A real deployment would need a database, user accounts and an audit trail.
 - The workflow ends in a simulated outbox. Connecting a real channel (Gmail, Slack, Telegram) should keep the approval step.
 
-## License
-
-MIT, see [`LICENSE`](LICENSE).
